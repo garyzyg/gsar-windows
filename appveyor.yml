@@ -1,0 +1,29 @@
+version: '{branch}-{build}'
+skip_non_tags: true
+platform:
+- x86
+- x64
+init:
+- cmd: IF %APPVEYOR_REPO_TAG%==true appveyor UpdateBuild -Version %APPVEYOR_REPO_TAG_NAME%-%APPVEYOR_BUILD_NUMBER%
+before_build:
+- cmd: >-
+    appveyor DownloadFile http://tjaberg.com/gsar%APPVEYOR_REPO_TAG_NAME:.=%.zip
+
+    7z x *.zip
+
+    DEL *.zip
+build_script:
+- cmd: build.bat
+after_build:
+- cmd: 7z a gsar-%Platform%.zip *.exe
+artifacts:
+- path: '*.zip'
+  name: gsar
+deploy:
+- provider: GitHub
+  tag: $(APPVEYOR_REPO_TAG_NAME)
+  auth_token:
+    secure: 1JP37Mbcz7HiTHHG6wUMX1FBjDRhFnt9jfXCsCkYXM/8ETJj0V9NTZLp4l9N+kqo
+  artifact: /.*\.zip/
+  on:
+    APPVEYOR_REPO_TAG: true
